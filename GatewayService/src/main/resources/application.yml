@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      default-filters:
+        - name: AddCustomHeaderPost
+          args:
+            msg: Post-Header
+        - name: AddCustomHeaderPre
+          args:
+            msg: Pre-Header
+      routes:
+        - id: method_route
+          uri: http://localhost:8082/
+          predicates:
+            - Method=POST,PUT
+          filters:
+            - name: ReadPostBodyPre
+        - id: serviceA
+          uri: http://localhost:8081/
+          predicates:
+            - Path=/service-a/**
+          filters:
+            - AddRequestHeader=X-Message, default-hi
+        - id: serviceB
+          uri: http://localhost:8082/
+          predicates:
+            - Path=/service-b/**
+
+logging:
+  level:
+    org:
+      springframework: DEBUG
